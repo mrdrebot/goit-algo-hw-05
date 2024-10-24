@@ -47,7 +47,6 @@ def load_logs(file_path: str) -> list:
         logs_list: list = []
         
         with open(file_path, 'r', encoding = 'utf-8') as file:
-            # logs_list = [file_row for file_row in file.readlines()]
             logs_list = [parse_log_line(file_row) for file_row in file.readlines()]
     
         return logs_list
