@@ -10,23 +10,48 @@ def parse_input(user_input):
 def input_error_add(func):
     @wraps(func)
     def inner(*args, **kwargs):
+        print(args)
+        print(len(args))
+        # print(args != ([], {}))
+        print(kwargs)
+
         try:
+            if not args or all(arg == [] or arg == {} for arg in args):
+                raise IndexError()
+
+            if len(args) < 2 and args != []:
+                raise IndexError()
+
+            name, phone = args
+
+            if 'name' in kwargs:
+                raise KeyError()
+
+            if not phone.isdigit():
+                raise ValueError()
+
             return func(*args, **kwargs)
         except ValueError:
-            return "Enter name and/or number!"
+            return "Error: Phone number must contain only digits!"
         except KeyError:
-            return "Entered name is already exist. Change name or use another command to change phone number!"
+            return "Error: Entered name is already exist. Change name or use another command to change phone number!"
+        except IndexError:
+            return "Error: You need to provide both name and phone!"
 
     return inner
 
 @input_error_add
 def add_contact(args, contacts):
+    # if len(args) < 2:
+    #     raise IndexError()
+
     name, phone = args
 
-    if name 
+    # if name in contacts:
+    #     raise KeyError()
 
-    if name in contacts:
-        raise KeyError("Contact already exists!")
+    # if not phone.isdigit():
+    #     raise ValueError("Phone number must contain only digits!")
     
     contacts[name] = phone
     return "Contact added."
