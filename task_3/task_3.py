@@ -48,28 +48,31 @@ def load_logs(file_path: str) -> list:
         
         with open(file_path, 'r', encoding = 'utf-8') as file:
             logs_list = [parse_log_line(file_row) for file_row in file.readlines()]
-    
+
+            if not logs_list:
+                raise ValueError("The find is empty!")
+            
         return logs_list
     except FileNotFoundError:
-        print("\nThe program could not find the file!")
-        sys.exit(1)
+        raise FileNotFoundError("The program could not find the file!")
     except Exception as e:
-        print(f"\nAn error occurred: {str(e)}")
-        sys.exit(1)
+        raise Exception(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f'\nThe path to the file is not specified!\nCorrect command to run: python [<start file path>] [<directory path>] <logs level>')
-        sys.exit(1)
+    else:
+        try:
+            parse_logs_list: list = load_logs(Path(fr'{sys.argv[1]}'))
+            counts_dict: dict = count_logs_by_level(parse_logs_list)
+            log_level: str = sys.argv[2] if len(sys.argv) > 2 else ""
+            value: bool = counts_dict.get(log_level.upper())
 
-parse_logs_list: list = load_logs(Path(fr'{sys.argv[1]}'))
-counts_dict: dict = count_logs_by_level(parse_logs_list)
-log_level: str = sys.argv[2] if len(sys.argv) > 2 else ""
-value: bool = counts_dict.get(log_level.upper())
+            if value == None and len(sys.argv) > 2:
+                raise ValueError(f"The entered log level doesn`t exist! Change log level")
 
-if value == None and len(sys.argv) > 2:
-    print(f"\nThe entered log level doesn`t exist! Change log level")
-    sys.exit(1)
+            display_log_counts(counts_dict)
+            filter_logs_by_level(parse_logs_list, log_level)
+        except Exception as e:
+            print(f"Error: { e }")
 
-display_log_counts(counts_dict)
-filter_logs_by_level(parse_logs_list, log_level)

@@ -6,21 +6,10 @@ def parse_input(user_input: str) -> tuple:
     cmd: str = cmd.strip().lower()
     return cmd, *args
 
-def input_error_add(func: Callable[[tuple], Callable[[tuple], tuple]]) -> Callable[[tuple], Callable[[tuple], tuple]]:
+def input_error(func: Callable[[tuple], Callable[[tuple], tuple]]) -> Callable[[tuple], Callable[[tuple], tuple]]:
     @wraps(func)
     def inner(*args: tuple) ->  Callable[[tuple], Callable[[tuple], tuple]]:
         try:
-            if len(args[0]) < 2:
-                raise IndexError("You need to provide both name and phone!")
-
-            name, phone = args[0]
-
-            if name.isdigit() or not phone.isdigit():
-                raise ValueError("Name must contain symbols and phone number only digits!")
-
-            if name in args[1]:
-                raise KeyError("Entered name is already exist. Change name or use another command to change phone number!")
-
             return func(*args)
         except ValueError as e:
             return f"Error: { e }"
@@ -31,94 +20,63 @@ def input_error_add(func: Callable[[tuple], Callable[[tuple], tuple]]) -> Callab
 
     return inner
 
-@input_error_add
+@input_error
 def add_contact(args: list, contacts: dict):
+    if len(args) < 2:
+                raise IndexError("Enter the argument for the command!")
+
     name, phone = args
+
+    if name.isdigit() or not phone.isdigit():
+        raise ValueError("Name must contain symbols and phone number only digits!")
+
+    if name in contacts:
+        raise KeyError("Entered name is already exist. Change name or use another command to change phone number!")
+    
     contacts[name] = phone
     return "Contact added."
 
-def input_error_change(func: Callable[[tuple], Callable[[tuple], tuple]]) -> Callable[[tuple], Callable[[tuple], tuple]]:
-    @wraps(func)
-    def inner(*args: tuple) ->  Callable[[tuple], Callable[[tuple], tuple]]:
-        try:
-            if len(args[0]) < 2:
-                raise IndexError("You need to provide both name and phone!")
-
-            name, phone = args[0]
-
-            if name.isdigit() or not phone.isdigit():
-                raise ValueError("Name must contain symbols and phone number only digits!")
-
-            if name not in args[1]:
-                raise KeyError("Entered name hasn't find in base!")
-
-            return func(*args)
-        except ValueError as e:
-            return f"Error: { e }"
-        except KeyError as e:
-            return f"Error: { e }"
-        except IndexError as e:
-            return f"Error: { e }"
-
-    return inner
-
-@input_error_change
+@input_error
 def change_contact(args: list, contacts: dict):
+    if len(args) < 2:
+        raise IndexError("You need to provide both name and phone!")
+
     name, phone = args
+
+    if name.isdigit() or not phone.isdigit():
+        raise ValueError("Name must contain symbols and phone number only digits!")
+
+    if name not in contacts:
+        raise KeyError("Entered name hasn't find in base!")
 
     if name in contacts:
         contacts[name] = phone
 
     return "Contact changed."
 
-def input_error_show_phone(func: Callable[[tuple], Callable[[tuple], tuple]]) -> Callable[[tuple], Callable[[tuple], tuple]]:
-    @wraps(func)
-    def inner(*args: tuple) ->  Callable[[tuple], Callable[[tuple], tuple]]:
-        try:
-            if len(args[0]) < 1:
-                raise IndexError("You need to provide name!")
-
-            name = args[0][0]
-
-            if name.isdigit():
-                raise ValueError("Entered name contain only digits!")
-
-            if name not in args[1]:
-                raise KeyError("Entered name hasn't find in base!")
-
-            return func(*args)
-        except ValueError as e:
-            return f"Error: { e }"
-        except KeyError as e:
-            return f"Error: { e }"
-        except IndexError as e:
-            return f"Error: { e }"
-
-    return inner
-
-@input_error_show_phone
+@input_error
 def show_phone(args: list, contacts: dict):
+    if len(args) < 1:
+        raise IndexError("You need to provide name!")
+    
     name = args[0]
+
+    if name.isdigit():
+        raise ValueError("Entered name contain only digits!")
+
+    if name not in contacts:
+        raise KeyError("Entered name hasn't find in base!")
 
     if name in contacts:
         return contacts[name]
 
-def input_error_show_all(func: Callable[[tuple], Callable[[tuple], tuple]]) -> Callable[[tuple], Callable[[tuple], tuple]]:
-    @wraps(func)
-    def inner(*args: tuple) ->  Callable[[tuple], Callable[[tuple], tuple]]:
-        try:
-            if not args[0]:
-                raise ValueError("The base is empty!")
-            
-            return func(*args)
-        except ValueError as e:
-            return f"Error: { e }"
-
-    return inner
-
-@input_error_show_all
+@input_error
 def show_all(contacts: dict):
+    if not contacts:
+        raise ValueError("The base is empty!")
+
     data_str: str = ""
+
     for key, value in contacts.items():
         data_str += f"Name: {key}, Phone: {value}\n"
 
